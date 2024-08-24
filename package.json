@@ -1,0 +1,29 @@
+{
+  "name": "dynamodb-table-item-mgr",
+  "version": "1.0.0",
+  "main": "src/dynamodbTable.mjs",
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "start": "node src/dynamodbTable.mjs",
+    "dev": "nodemon src/dynamodbTable.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "## terraform",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.637.0",
+    "@aws-sdk/lib-dynamodb": "^3.637.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/plugin-transform-modules-commonjs": "^7.24.8",
+    "@babel/preset-env": "^7.25.4",
+    "@babel/preset-react": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
+    "aws-sdk-client-mock": "^4.0.1",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0"
+  }
+}
