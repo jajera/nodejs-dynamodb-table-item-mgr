@@ -20,13 +20,37 @@ test("PUT /items inserts an item", async () => {
 
   const event = {
     routeKey: "PUT /items",
-    body: JSON.stringify({ itemId: "item1", name: "Item One", price: 100 }),
+    pathParameters: "{}",
+    requestBody: JSON.stringify({
+      itemId: "item1",
+      name: "Item One",
+      price: "100",
+    }),
   };
 
   const result = await handler(event);
 
   expect(result.statusCode).toBe(200);
   expect(JSON.parse(result.body)).toEqual({ message: "Put item item1" });
+});
+
+test("GET /items scans all items", async () => {
+  dynamoDBMock.on(ScanCommand).resolves({
+    Items: [
+      { itemId: { S: "item1" }, name: { S: "Item One" }, price: { S: "100" } },
+    ],
+  });
+
+  const event = {
+    routeKey: "GET /items",
+  };
+
+  const result = await handler(event);
+
+  expect(result.statusCode).toBe(200);
+  expect(JSON.parse(result.body)).toEqual([
+    { itemId: { S: "item1" }, name: { S: "Item One" }, price: { S: "100" } },
+  ]);
 });
 
 test("OPTIONS /items returns CORS preflight response", async () => {
@@ -40,25 +64,6 @@ test("OPTIONS /items returns CORS preflight response", async () => {
   expect(JSON.parse(result.body)).toEqual({
     message: "CORS preflight request",
   });
-});
-
-test("GET /items scans all items", async () => {
-  dynamoDBMock.on(ScanCommand).resolves({
-    Items: [
-      { itemId: { S: "item1" }, name: { S: "Item One" }, price: { N: "100" } },
-    ],
-  });
-
-  const event = {
-    routeKey: "GET /items",
-  };
-
-  const result = await handler(event);
-
-  expect(result.statusCode).toBe(200);
-  expect(JSON.parse(result.body)).toEqual([
-    { itemId: { S: "item1" }, name: { S: "Item One" }, price: { N: "100" } },
-  ]);
 });
 
 test("OPTIONS /items/{id} returns CORS preflight response", async () => {
@@ -80,7 +85,7 @@ test("GET /items/{id} gets a single item", async () => {
     Item: {
       itemId: { S: "item1" },
       name: { S: "Item One" },
-      price: { N: "100" },
+      price: { S: "100" },
     },
   });
 
@@ -95,7 +100,7 @@ test("GET /items/{id} gets a single item", async () => {
   expect(JSON.parse(result.body)).toEqual({
     itemId: { S: "item1" },
     name: { S: "Item One" },
-    price: { N: "100" },
+    price: { S: "100" },
   });
 });
 
@@ -104,7 +109,7 @@ test("DELETE /items/{id} deletes an item", async () => {
     Attributes: {
       itemId: { S: "item1" },
       name: { S: "Item One" },
-      price: { N: "100" },
+      price: { S: "100" },
     },
   });
 
