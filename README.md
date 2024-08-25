@@ -28,6 +28,14 @@ source ./terraform/terraform.tmp
 
 ```bash
 aws dynamodb list-tables --region ap-southeast-1
+```
+
+### set table variable
+
+assuming there is only one at the moment, otherwise update accordingly.
+
+```bash
+aws dynamodb list-tables --region ap-southeast-1
 export TABLE_NAME=$(aws dynamodb list-tables --region ap-southeast-1 --query "TableNames[0]" --output text)
 ```
 
