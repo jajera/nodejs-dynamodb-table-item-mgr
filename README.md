@@ -74,7 +74,7 @@ export RUNNING_DIRECTLY=true
 ```
 
 ```bash
-node ./src/dynamodbTable.mjs "PUT /items" '{}' '{"itemId": "123", "price": 100, "name": "Sample Item"}'
+node ./src/dynamodbTable.mjs "PUT /items" '{}' '{"itemId": "123", "name": "Sample Item", "price": "100" }'
 ```
 
 ```bash
@@ -86,15 +86,23 @@ node ./src/dynamodbTable.mjs "GET /items"
 ```
 
 ```bash
-node ./src/dynamodbTable.mjs "OPTIONS /items/{id}" '{"id": "123"}' ''
+node ./src/dynamodbTable.mjs "OPTIONS /items/{id}" '{"id": "123"}'
 ```
 
 ```bash
-node ./src/dynamodbTable.mjs "GET /items/{id}" '{"id": "123"}' ''
+node ./src/dynamodbTable.mjs "GET /items/{id}" '{"id": "123"}'
 ```
 
 ```bash
-node ./src/dynamodbTable.mjs "DELETE /items/{id}" '{"id": "123"}' ''
+node ./src/dynamodbTable.mjs "DELETE /items/{id}" '{"id": "123"}'
+```
+
+```bash
+node ./src/dynamodbTable.mjs "GET /items/{id}" '{"id": "123"}'
+```
+
+```bash
+node ./src/dynamodbTable.mjs "DELETE /items/{id}" '{"id": "123"}'
 ```
 
 ```bash

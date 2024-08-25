@@ -58,8 +58,8 @@ const putItem = async (tableName, item) => {
 
   const formattedItem = {
     itemId: { S: item.itemId },
-    price: { N: item.price.toString() },
     name: { S: item.name },
+    price: { S: item.price.toString() },
   };
 
   return dynamo.send(
@@ -74,6 +74,7 @@ const putItem = async (tableName, item) => {
 export const handler = async (event) => {
   let body;
   let statusCode = 200;
+
   const headers = { "Content-Type": "application/json" };
 
   console.log("Received event:", JSON.stringify(event));
@@ -85,21 +86,38 @@ export const handler = async (event) => {
       throw new Error("TABLE_NAME environment variable is not set");
     }
 
-    const { routeKey, pathParameters, body: requestBody } = event;
+    const { routeKey, pathParameters = {}, requestBody = {} } = event;
+    const jRequestBody =
+      typeof requestBody === "string" ? JSON.parse(requestBody) : requestBody;
+    const jPathParameters =
+      typeof pathParameters === "string"
+        ? JSON.parse(pathParameters)
+        : pathParameters;
 
     switch (routeKey) {
       case "DELETE /items/{id}":
-        const deleteResponse = await deleteItem(tableName, pathParameters.id);
-        if (deleteResponse) {
-          body = { message: `Deleted item ${pathParameters.id}` };
-        } else {
-          body = { message: `Item with ID ${pathParameters.id} not found` };
-          statusCode = 404;
+        if (!jPathParameters.id) {
+          statusCode = 400;
+          body = { error: "Missing path parameter: id" };
+          break;
         }
+
+        const deleteResponse = await deleteItem(tableName, jPathParameters.id);
+        body = deleteResponse
+          ? { message: `Deleted item ${jPathParameters.id}` }
+          : { message: `Item with ID ${jPathParameters.id} not found` };
+
+        statusCode = deleteResponse ? 200 : 404;
         break;
 
       case "GET /items/{id}":
-        const getItemResponse = await getItem(tableName, pathParameters.id);
+        if (!jPathParameters.id) {
+          statusCode = 400;
+          body = { error: "Missing path parameter: id" };
+          break;
+        }
+
+        const getItemResponse = await getItem(tableName, jPathParameters.id);
         body = getItemResponse.Item || { message: "Item not found" };
         statusCode = getItemResponse.Item ? 200 : 404;
         break;
@@ -110,13 +128,16 @@ export const handler = async (event) => {
         break;
 
       case "PUT /items":
-        if (!requestBody) {
-          throw new Error("Missing request body");
+        if (!jRequestBody.itemId) {
+          return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Missing request body" }),
+            headers: { "Content-Type": "application/json" },
+          };
         }
 
-        const itemData = JSON.parse(requestBody);
-        await putItem(tableName, itemData);
-        body = { message: `Put item ${itemData.itemId}` };
+        await putItem(tableName, jRequestBody);
+        body = { message: `Put item ${jRequestBody.itemId}` };
         break;
 
       case "OPTIONS /items":
@@ -145,7 +166,7 @@ if (process.argv[1] && path.basename(process.argv[1]) === scriptName) {
   const simulateEvent = (routeKey, pathParameters, requestBody) => ({
     routeKey,
     pathParameters,
-    body: requestBody,
+    requestBody,
   });
 
   const args = process.argv.slice(2);
@@ -159,7 +180,7 @@ if (process.argv[1] && path.basename(process.argv[1]) === scriptName) {
 
   const routeKey = args[0];
   const pathParams = args[1] ? JSON.parse(args[1]) : {};
-  const requestBody = args[2] || null;
+  const requestBody = args[2] ? JSON.parse(args[2]) : {};
 
   (async () => {
     try {
